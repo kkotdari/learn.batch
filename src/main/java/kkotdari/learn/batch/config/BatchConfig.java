@@ -42,14 +42,6 @@ public class BatchConfig {
     }
 
 //    @Bean
-//    public DataSource getH2DataSource() {
-//        return new EmbeddedDatabaseBuilder()
-//                .setType(EmbeddedDatabaseType.H2)
-//                .addScript("classpath:org/springframework/batch/core/schema-h2.sql")
-//                .build();
-//    }
-
-//    @Bean
 //    public DataSource dataSource() {
 //        return DataSourceBuilder.create()
 //                .url("jdbc:h2:mem:testdb")
@@ -86,7 +78,7 @@ public class BatchConfig {
     }
 
     @Bean
-    public Job getJob() throws Exception {
+    public Job getJob() {
         JobBuilder builder = new JobBuilder("job", repository);
         SimpleJobBuilder start = builder.start(getStep().get(0));
         for (Step s : getStep()) {
