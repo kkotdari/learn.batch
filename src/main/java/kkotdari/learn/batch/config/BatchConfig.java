@@ -9,12 +9,14 @@ import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.job.builder.SimpleJobBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -24,10 +26,14 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableBatchProcessing
 public class BatchConfig {
+    private static final List<TestType> typeList = Arrays.asList(TestType.TEST_1, TestType.TEST_2);
     private final JobLauncher launcher;
     private final JobRepository repository;
     private final PlatformTransactionManager manager;
@@ -68,25 +74,29 @@ public class BatchConfig {
     }
 
     @Bean
-    protected Step getStep() {
-        return new StepBuilder("step", repository)
-                .tasklet((ctr, ctx) -> {
-                    TestType[] values = {TestType.TEST_1, TestType.TEST_2};
-                    for (TestType t : values) {
+    protected List<Step> getStep() {
+        List<Step> stepList = new ArrayList<>();
+        for (TestType t : typeList) {
+            TaskletStep step = new StepBuilder((typeList.indexOf(t) + 2) + ". " + t.getValue() + " step", repository)
+                    .tasklet((ctr, ctx) -> {
                         getTestService().setTestType(t);
                         getTestService().run();
-                    }
-                    return null;
-                }, manager)
-                .build();
-
+                        return null;
+                    }, manager)
+                    .build();
+            stepList.add(step);
+        }
+        return stepList;
     }
 
     @Bean
     public Job getJob() throws Exception {
-        return new JobBuilder("job", repository)
-                .start(getStep())
-                .build();
+        JobBuilder builder = new JobBuilder("job", repository);
+        SimpleJobBuilder start = builder.start(getStep().get(0));
+        for (Step s : getStep()) {
+            start.next(s);
+        }
+        return start.build();
     }
 
     public void runJob() {
