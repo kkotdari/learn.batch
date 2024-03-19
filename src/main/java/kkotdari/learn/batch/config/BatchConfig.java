@@ -50,6 +50,13 @@ public class BatchConfig {
 //                .password("")
 //                .build();
 //    }
+//
+//    @Bean
+//    public ResourceDatabasePopulator initializeDatabase() {
+//        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("classpath:org/springframework/batch/core/schema-h2.sql"));
+//        populator.execute(dataSource());
+//        return populator;
+//    }
 
     @Bean
     protected TestSubService getTestSubService() {

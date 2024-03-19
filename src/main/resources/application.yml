@@ -1,4 +1,11 @@
 spring:
+  application:
+    name: batch
+
+  batch:
+    jdbc:
+      initialize-schema: always
+
   sql:
     init:
       schema-locations: classpath:org/springframework/batch/core/schema-h2.sql
@@ -14,12 +21,6 @@ spring:
       enabled: 'true'
       path: /h2-console
 
-  batch:
-    jdbc:
-      initialize-schema: always
-
-  application:
-    name: batch
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
